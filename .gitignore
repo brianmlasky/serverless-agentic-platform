@@ -1,0 +1,36 @@
+# Terraform
+*.tfvars
+*.tfvars.json
+**/.terraform/
+.terraform.lock.hcl
+*.tfstate
+*.tfstate.backup
+*.tfplan
+
+# GCP Credentials - NEVER COMMIT
+*.json
+!package.json
+!package-lock.json
+~/.gcp-credentials/
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# Google Cloud SDK (installed locally)
+google-cloud-sdk/
+google-cloud-cli-*.tar.gz
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+
+# Node
+node_modules/
