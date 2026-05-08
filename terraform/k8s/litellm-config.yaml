@@ -1,0 +1,26 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: litellm-config
+  namespace: litellm
+data:
+  config.yaml: |
+    model_list:
+      - model_name: claude-haiku
+        litellm_params:
+          model: bedrock/us.anthropic.claude-haiku-4-5-20251001-v1:0
+          aws_region_name: us-east-1
+      - model_name: claude-sonnet
+        litellm_params:
+          model: bedrock/us.anthropic.claude-sonnet-4-5-20250929-v1:0
+          aws_region_name: us-east-1
+      - model_name: claude-opus
+        litellm_params:
+          model: bedrock/us.anthropic.claude-opus-4-1-20250805-v1:0
+          aws_region_name: us-east-1
+    litellm_settings:
+      drop_params: true
+      request_timeout: 600
+      num_retries: 3
+    general_settings:
+      master_key: "sk-dev-litellm-2024"
