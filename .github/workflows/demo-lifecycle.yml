@@ -84,7 +84,9 @@ jobs:
         working-directory: ./terraform/environments/dev-aws
         run: |
           terraform plan \
-            -var="project_id=${{ secrets.GCP_PROJECT_ID }}" \
+            -var="gcp_project_id=${{ secrets.GCP_PROJECT_ID }}" \
+            -var="gcp_region=us-central1" \
+            -var="gke_cluster_name=dev-gke-cluster" \
             -var="aws_account_id=${{ secrets.AWS_ACCOUNT_ID }}" \
             -var="admin_user_name=${{ secrets.AWS_ADMIN_USER_NAME }}" \
             -out=tfplan
@@ -99,6 +101,8 @@ jobs:
         working-directory: ./terraform/environments/dev-aws
         run: |
           terraform destroy -auto-approve \
-            -var="project_id=${{ secrets.GCP_PROJECT_ID }}" \
+            -var="gcp_project_id=${{ secrets.GCP_PROJECT_ID }}" \
+            -var="gcp_region=us-central1" \
+            -var="gke_cluster_name=dev-gke-cluster" \
             -var="aws_account_id=${{ secrets.AWS_ACCOUNT_ID }}" \
             -var="admin_user_name=${{ secrets.AWS_ADMIN_USER_NAME }}"
