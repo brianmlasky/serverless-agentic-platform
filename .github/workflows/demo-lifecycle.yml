@@ -64,6 +64,7 @@ jobs:
         with:
           role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/github-actions-terraform-role
           aws-region: us-east-1
+          audience: sts.amazonaws.com
           role-session-name: GitHubActions-Terraform
 
       - name: Verify AWS Identity
