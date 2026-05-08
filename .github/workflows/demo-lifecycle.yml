@@ -62,7 +62,7 @@ jobs:
       - name: Authenticate to AWS via OIDC
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/github-actions-terraform-role
+          role-to-assume: arn:aws:iam::229502947368:role/github-actions-terraform-role
           aws-region: us-east-1
           audience: sts.amazonaws.com
           role-session-name: GitHubActions-Terraform
