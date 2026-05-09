@@ -37,8 +37,3 @@ node_modules/
 tfplan
 awscliv2.zip
 aws/
-# Root-level scratch Terraform workspace (superseded by terraform/ directory)
-/main.tf
-/variables.tf
-/outputs.tf
-/modules/
