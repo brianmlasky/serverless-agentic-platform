@@ -37,4 +37,7 @@ module "aws_iam" {
   k8s_namespace       = var.k8s_namespace
   k8s_service_account = var.k8s_service_account
   environment         = var.environment
+
+  gke_oidc_provider_arn = "arn:aws:iam::${var.aws_account_id}:oidc-provider/container.googleapis.com/v1/projects/${var.gcp_project_id}/locations/${var.gcp_region}/clusters/${var.gke_cluster_name}"
+  gke_oidc_provider_url = "container.googleapis.com/v1/projects/${var.gcp_project_id}/locations/${var.gcp_region}/clusters/${var.gke_cluster_name}"
 }
