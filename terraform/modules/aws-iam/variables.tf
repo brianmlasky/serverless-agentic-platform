@@ -40,3 +40,13 @@ variable "environment" {
   type        = string
   default     = "dev"
 }
+
+variable "gke_oidc_provider_arn" {
+  description = "ARN of the GKE OIDC provider in AWS IAM (passed directly to avoid data source lookup)"
+  type        = string
+}
+
+variable "gke_oidc_provider_url" {
+  description = "URL of the GKE OIDC provider without https:// (used as condition key prefix)"
+  type        = string
+}

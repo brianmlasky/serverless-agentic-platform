@@ -1,16 +1,10 @@
-# ── Data Sources ───────────────────────────────────────────────────────────────
-
-# Existing GKE OIDC provider (created out-of-band, imported into state)
-data "aws_iam_openid_connect_provider" "gke" {
-  arn = "arn:aws:iam::${var.aws_account_id}:oidc-provider/container.googleapis.com/v1/projects/${var.gcp_project_id}/locations/${var.gcp_region}/clusters/${var.gke_cluster_name}"
-}
-
-# ── IAM Role: LiteLLM Bedrock Access ──────────────────────────────────────────
+# Rationale: data "aws_iam_openid_connect_provider" requires iam:GetOpenIDConnectProvider
+# at plan time. Since the ARN is deterministic from input variables,
+# we pass it directly and avoid the live API call entirely.
 
 locals {
-  gke_oidc_url = trimprefix(data.aws_iam_openid_connect_provider.gke.url, "https://")
-  # Subject claim format for GKE Workload Identity tokens
-  k8s_subject = "system:serviceaccount:${var.k8s_namespace}:${var.k8s_service_account}"
+  gke_oidc_url = var.gke_oidc_provider_url
+  k8s_subject  = "system:serviceaccount:${var.k8s_namespace}:${var.k8s_service_account}"
 }
 
 resource "aws_iam_role" "litellm_bedrock" {
@@ -24,7 +18,7 @@ resource "aws_iam_role" "litellm_bedrock" {
         Sid    = "GKEWorkloadIdentity"
         Effect = "Allow"
         Principal = {
-          Federated = data.aws_iam_openid_connect_provider.gke.arn
+          Federated = var.gke_oidc_provider_arn
         }
         Action = "sts:AssumeRoleWithWebIdentity"
         Condition = {
@@ -44,11 +38,9 @@ resource "aws_iam_role" "litellm_bedrock" {
   }
 }
 
-# ── Bedrock Policy ─────────────────────────────────────────────────────────────
-
 resource "aws_iam_policy" "bedrock_access" {
   name        = "${var.environment}-litellm-bedrock-policy"
-  description = "Minimum permissions for LiteLLM to invoke Bedrock Claude models"
+  description = "Minimum permissions for LiteLLM to invoke Bedrock models"
 
   policy = jsonencode({
     Version = "2012-10-17"
@@ -82,8 +74,6 @@ resource "aws_iam_role_policy_attachment" "litellm_bedrock" {
   role       = aws_iam_role.litellm_bedrock.name
   policy_arn = aws_iam_policy.bedrock_access.arn
 }
-
-# ── Admin User: Marketplace Policy ────────────────────────────────────────────
 
 resource "aws_iam_user_policy_attachment" "admin_marketplace" {
   user       = var.admin_user_name
