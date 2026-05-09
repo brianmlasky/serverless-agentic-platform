@@ -15,5 +15,5 @@ output "bedrock_policy_arn" {
 
 output "gke_oidc_provider_arn" {
   description = "ARN of the GKE OIDC provider (read-only data source)"
-  value       = data.aws_iam_openid_connect_provider.gke.arn
+  value       = var.gke_oidc_provider_arn
 }
