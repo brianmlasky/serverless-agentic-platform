@@ -36,3 +36,4 @@ __pycache__/
 node_modules/
 tfplan
 awscliv2.zip
+aws/
