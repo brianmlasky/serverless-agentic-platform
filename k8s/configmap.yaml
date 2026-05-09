@@ -1,0 +1,27 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: litellm-config
+  namespace: litellm
+  labels:
+    app: litellm
+    cost-center: "research-dev"
+data:
+  config.yaml: |
+    model_list:
+      - model_name: bedrock-claude-sonnet
+        litellm_params:
+          model: bedrock/anthropic.claude-3-5-sonnet-20241022-v2:0
+          aws_region_name: us-east-1
+      - model_name: bedrock-claude-haiku
+        litellm_params:
+          model: bedrock/anthropic.claude-3-haiku-20240307-v1:0
+          aws_region_name: us-east-1
+
+    litellm_settings:
+      drop_params: true
+      success_callback: []
+      failure_callback: []
+
+    general_settings:
+      master_key: os.environ/LITELLM_MASTER_KEY

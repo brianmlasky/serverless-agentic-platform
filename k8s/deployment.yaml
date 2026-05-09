@@ -1,0 +1,74 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: litellm-gateway
+  namespace: litellm
+  labels:
+    app: litellm
+    cost-center: "research-dev"
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: litellm
+  template:
+    metadata:
+      labels:
+        app: litellm
+        cost-center: "research-dev"
+    spec:
+      serviceAccountName: litellm-sa
+      containers:
+      - name: litellm
+        image: ghcr.io/berriai/litellm:main-latest
+        args: ["--config", "/app/config/config.yaml"]
+        ports:
+        - containerPort: 4000
+        env:
+        - name: AWS_ROLE_ARN
+          value: "arn:aws:iam::229502947368:role/dev-litellm-bedrock-role"
+        - name: AWS_WEB_IDENTITY_TOKEN_FILE
+          value: "/var/run/secrets/tokens/gcp-ksa-token"
+        - name: AWS_DEFAULT_REGION
+          value: "us-east-1"
+        - name: LITELLM_MASTER_KEY
+          valueFrom:
+            secretKeyRef:
+              name: litellm-master-key
+              key: master-key
+        volumeMounts:
+        - name: config-volume
+          mountPath: /app/config
+        - name: gcp-ksa-token
+          mountPath: /var/run/secrets/tokens
+          readOnly: true
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "250m"
+          limits:
+            memory: "1Gi"
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /health/liveliness
+            port: 4000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /health/readiness
+            port: 4000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+      volumes:
+      - name: config-volume
+        configMap:
+          name: litellm-config
+      - name: gcp-ksa-token
+        projected:
+          sources:
+          - serviceAccountToken:
+              path: gcp-ksa-token
+              expirationSeconds: 3600
+              audience: "sts.amazonaws.com"

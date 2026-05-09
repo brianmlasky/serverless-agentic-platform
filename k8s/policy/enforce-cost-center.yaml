@@ -1,0 +1,25 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: check-cost-center
+  annotations:
+    policies.kyverno.io/title: Require Cost Center Label
+    policies.kyverno.io/description: >
+      FinSecOps: Every pod must declare a cost-center label
+      for billing attribution. Audit mode until all workloads confirmed compliant.
+spec:
+  validationFailureAction: Audit
+  background: true
+  rules:
+  - name: require-cost-center-label
+    match:
+      any:
+      - resources:
+          kinds:
+          - Pod
+    validate:
+      message: "FinSecOps: Every pod must have a 'cost-center' label."
+      pattern:
+        metadata:
+          labels:
+            cost-center: "?*"
