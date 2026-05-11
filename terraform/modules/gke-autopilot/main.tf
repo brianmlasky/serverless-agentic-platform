@@ -2,10 +2,11 @@
 # GKE Autopilot Cluster
 # ============================================================
 resource "google_container_cluster" "main" {
-  provider = google-beta
-  name     = "${var.environment}-${var.cluster_name}"
-  location = var.region
-  project  = var.project_id
+  provider    = google-beta
+  name        = "${var.environment}-${var.cluster_name}"
+  location    = var.region
+  project     = var.project_id
+  description = "Autopilot cluster. Google manages nodes. We own workload identity and network policy."
 
   # Autopilot mode - Google manages nodes
   enable_autopilot = true
@@ -67,5 +68,5 @@ resource "google_container_cluster" "main" {
 resource "google_service_account_iam_member" "workload_identity" {
   service_account_id = "projects/${var.project_id}/serviceAccounts/${var.workload_sa_email}"
   role               = "roles/iam.workloadIdentityUser"
-  member             = "serviceAccount:${var.project_id}.svc.id.goog[default/gke-workload-sa]"
+  member             = "serviceAccount:${var.project_id}.svc.id.goog[default/litellm-sa]"
 }

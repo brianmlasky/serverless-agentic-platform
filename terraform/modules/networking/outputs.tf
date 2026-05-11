@@ -20,10 +20,10 @@ output "subnetwork_name" {
 
 output "pods_range_name" {
   description = "Secondary range name for GKE pods"
-  value       = "pods"
+  value       = "${var.environment}-pods"
 }
 
 output "services_range_name" {
   description = "Secondary range name for GKE services"
-  value       = "services"
+  value       = "${var.environment}-services"
 }

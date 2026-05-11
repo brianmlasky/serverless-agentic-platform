@@ -14,9 +14,9 @@ variable "environment" {
 }
 
 variable "network_name" {
-  description = "VPC network name"
+  description = "VPC network name suffix"
   type        = string
-  default     = "main-vpc"
+  default     = "vpc"
 }
 
 variable "subnet_cidr" {

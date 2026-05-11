@@ -5,6 +5,7 @@ resource "google_compute_network" "main" {
   name                    = "${var.environment}-${var.network_name}"
   auto_create_subnetworks = false
   project                 = var.project_id
+  description             = "Private VPC. No default routes. Egress controlled by NAT."
 
   lifecycle {
     prevent_destroy = false
@@ -15,20 +16,19 @@ resource "google_compute_network" "main" {
 # Subnet with secondary ranges for GKE
 # ============================================================
 resource "google_compute_subnetwork" "main" {
-  name          = "${var.environment}-main-subnet"
+  name          = "${var.environment}-subnet-${var.region}"
   ip_cidr_range = var.subnet_cidr
   region        = var.region
   network       = google_compute_network.main.id
   project       = var.project_id
 
-  # Required for GKE Autopilot
   secondary_ip_range {
-    range_name    = "pods"
+    range_name    = "${var.environment}-pods"
     ip_cidr_range = var.pods_cidr
   }
 
   secondary_ip_range {
-    range_name    = "services"
+    range_name    = "${var.environment}-services"
     ip_cidr_range = var.services_cidr
   }
 
@@ -36,7 +36,7 @@ resource "google_compute_subnetwork" "main" {
 }
 
 # ============================================================
-# Cloud Router + NAT (for private GKE nodes to reach internet)
+# Cloud Router + NAT
 # ============================================================
 resource "google_compute_router" "main" {
   name    = "${var.environment}-router"

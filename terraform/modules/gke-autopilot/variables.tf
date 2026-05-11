@@ -9,7 +9,7 @@ variable "workload_sa_email"    { type = string }
 
 variable "cluster_name" {
   type    = string
-  default = "portfolio-cluster"
+  default = "gke-cluster"
 }
 
 variable "release_channel" {
