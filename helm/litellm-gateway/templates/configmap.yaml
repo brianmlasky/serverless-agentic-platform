@@ -1,0 +1,45 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: litellm-config
+  namespace: {{ .Release.Namespace }}
+data:
+  config.yaml: |
+    model_list:
+      - model_name: bedrock-claude-haiku
+        litellm_params:
+          model: bedrock/us.anthropic.claude-haiku-4-5-20251001-v1:0
+          aws_region_name: us-east-1
+
+      - model_name: bedrock-claude-haiku-4
+        litellm_params:
+          model: bedrock/us.anthropic.claude-haiku-4-5-20251001-v1:0
+          aws_region_name: us-east-1
+
+      - model_name: bedrock-claude-sonnet
+        litellm_params:
+          model: bedrock/us.anthropic.claude-sonnet-4-20250514-v1:0
+          aws_region_name: us-east-1
+
+      - model_name: bedrock-claude-sonnet-4
+        litellm_params:
+          model: bedrock/us.anthropic.claude-sonnet-4-20250514-v1:0
+          aws_region_name: us-east-1
+
+      - model_name: bedrock-claude-opus
+        litellm_params:
+          model: bedrock/us.anthropic.claude-opus-4-20250514-v1:0
+          aws_region_name: us-east-1
+
+      - model_name: bedrock-claude-opus-4
+        litellm_params:
+          model: bedrock/us.anthropic.claude-opus-4-20250514-v1:0
+          aws_region_name: us-east-1
+
+    litellm_settings:
+      drop_params: true
+      success_callback: []
+      failure_callback: []
+
+    general_settings:
+      master_key: os.environ/LITELLM_MASTER_KEY
