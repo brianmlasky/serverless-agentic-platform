@@ -1,0 +1,74 @@
+apiVersion: v1
+data:
+  config.yaml: "model_list:\n  # \u2500\u2500 AWS Bedrock: Anthropic (via cross-region\
+    \ inference profiles) \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\
+    \u2500\n  - model_name: bedrock-claude-haiku\n    litellm_params:\n      model:\
+    \ bedrock/us.anthropic.claude-3-5-haiku-20241022-v1:0\n      aws_region_name:\
+    \ us-east-1\n\n  - model_name: bedrock-claude-haiku-4\n    litellm_params:\n \
+    \     model: bedrock/anthropic.claude-haiku-4-5-20251001-v1:0\n      aws_region_name:\
+    \ us-east-1\n\n  - model_name: bedrock-claude-sonnet\n    litellm_params:\n  \
+    \    model: bedrock/us.anthropic.claude-opus-4-20250514-v1:0\n      aws_region_name:\
+    \ us-east-1\n\n  # \u2500\u2500 AWS Bedrock: Amazon Nova \u2500\u2500\u2500\u2500\
+    \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\
+    \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\
+    \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\
+    \u2500\u2500\u2500\u2500\n  - model_name: bedrock-nova-premier\n    litellm_params:\n\
+    \      model: bedrock/us.amazon.nova-premier-v1:0\n      aws_region_name: us-east-1\n\
+    \n  - model_name: bedrock-nova-pro\n    litellm_params:\n      model: bedrock/amazon.nova-pro-v1:0\n\
+    \      aws_region_name: us-east-1\n\n  # \u2500\u2500 AWS Bedrock: Meta Llama\
+    \ (typically no marketplace approval needed) \u2500\u2500\u2500\u2500\u2500\n\
+    \  - model_name: bedrock-llama-3b\n    litellm_params:\n      model: bedrock/us.meta.llama3-2-3b-instruct-v1:0\n\
+    \      aws_region_name: us-east-1\n\n  - model_name: bedrock-llama-8b\n    litellm_params:\n\
+    \      model: bedrock/us.meta.llama3-1-8b-instruct-v1:0\n      aws_region_name:\
+    \ us-east-1\n\n  # \u2500\u2500 GCP Vertex AI / Gemini \u2500\u2500\u2500\u2500\
+    \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\
+    \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\
+    \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\
+    \u2500\u2500\u2500\u2500\u2500\u2500\n  - model_name: gemini-flash\n    litellm_params:\n\
+    \      model: vertex_ai/gemini-2.0-flash-001\n      vertex_project: alert-hall-466720-c0\n\
+    \      vertex_location: us-central1\n\n  - model_name: gemini-pro\n    litellm_params:\n\
+    \      model: vertex_ai/gemini-2.5-pro-preview-05-06\n      vertex_project: alert-hall-466720-c0\n\
+    \      vertex_location: us-central1\n\nlitellm_settings:\n  drop_params: true\n\
+    \  request_timeout: 600\n  success_callback: []\n  failure_callback: []\n\ngeneral_settings:\n\
+    \  master_key: os.environ/LITELLM_MASTER_KEY\n"
+kind: ConfigMap
+metadata:
+  annotations:
+    kubectl.kubernetes.io/last-applied-configuration: "{\"apiVersion\":\"v1\",\"data\"\
+      :{\"config.yaml\":\"model_list:\\n  # \u2500\u2500 AWS Bedrock: Anthropic (via\
+      \ cross-region inference profiles) \u2500\u2500\u2500\u2500\u2500\u2500\u2500\
+      \u2500\u2500\u2500\u2500\\n  - model_name: bedrock-claude-haiku\\n    litellm_params:\\\
+      n      model: bedrock/us.anthropic.claude-3-5-haiku-20241022-v1:0\\n      aws_region_name:\
+      \ us-east-1\\n\\n  - model_name: bedrock-claude-haiku-4\\n    litellm_params:\\\
+      n      model: bedrock/anthropic.claude-haiku-4-5-20251001-v1:0\\n      aws_region_name:\
+      \ us-east-1\\n\\n  - model_name: bedrock-claude-sonnet\\n    litellm_params:\\\
+      n      model: bedrock/us.anthropic.claude-opus-4-20250514-v1:0\\n      aws_region_name:\
+      \ us-east-1\\n\\n  # \u2500\u2500 AWS Bedrock: Amazon Nova \u2500\u2500\u2500\
+      \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\
+      \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\
+      \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\
+      \u2500\u2500\u2500\u2500\u2500\\n  - model_name: bedrock-nova-premier\\n   \
+      \ litellm_params:\\n      model: bedrock/us.amazon.nova-premier-v1:0\\n    \
+      \  aws_region_name: us-east-1\\n\\n  - model_name: bedrock-nova-pro\\n    litellm_params:\\\
+      n      model: bedrock/amazon.nova-pro-v1:0\\n      aws_region_name: us-east-1\\\
+      n\\n  # \u2500\u2500 AWS Bedrock: Meta Llama (typically no marketplace approval\
+      \ needed) \u2500\u2500\u2500\u2500\u2500\\n  - model_name: bedrock-llama-3b\\\
+      n    litellm_params:\\n      model: bedrock/us.meta.llama3-2-3b-instruct-v1:0\\\
+      n      aws_region_name: us-east-1\\n\\n  - model_name: bedrock-llama-8b\\n \
+      \   litellm_params:\\n      model: bedrock/us.meta.llama3-1-8b-instruct-v1:0\\\
+      n      aws_region_name: us-east-1\\n\\n  # \u2500\u2500 GCP Vertex AI / Gemini\
+      \ \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\
+      \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\
+      \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\
+      \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\\n  - model_name:\
+      \ gemini-flash\\n    litellm_params:\\n      model: vertex_ai/gemini-2.0-flash-001\\\
+      n      vertex_project: alert-hall-466720-c0\\n      vertex_location: us-central1\\\
+      n\\n  - model_name: gemini-pro\\n    litellm_params:\\n      model: vertex_ai/gemini-2.5-pro-preview-05-06\\\
+      n      vertex_project: alert-hall-466720-c0\\n      vertex_location: us-central1\\\
+      n\\nlitellm_settings:\\n  drop_params: true\\n  request_timeout: 600\\n  success_callback:\
+      \ []\\n  failure_callback: []\\n\\ngeneral_settings:\\n  master_key: os.environ/LITELLM_MASTER_KEY\\\
+      n\"},\"kind\":\"ConfigMap\",\"metadata\":{\"annotations\":{},\"name\":\"litellm-config\"\
+      ,\"namespace\":\"litellm\"}}\n"
+  name: litellm-config
+  namespace: litellm
+

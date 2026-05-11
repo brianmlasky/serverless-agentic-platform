@@ -138,12 +138,11 @@ module "workload_identity" {
   source = "../../modules/workload-identity"
 
   project_id             = var.project_id
-  aws_account_id         = var.aws_account_id
-  aws_region             = var.aws_region
-  aws_role_name          = "dev-litellm-bedrock-role"
+  aws_role_arn           = module.aws_iam.role_arn
   k8s_namespace          = "litellm"
   k8s_service_account    = "litellm-sa"
+  environment            = var.environment
   gke_cluster_dependency = module.gke_autopilot.cluster_name
 
-  depends_on = [module.gke_autopilot]
+  depends_on = [module.gke_autopilot, module.aws_iam]
 }
