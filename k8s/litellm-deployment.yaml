@@ -20,7 +20,8 @@ spec:
     type: RollingUpdate
   template:
     metadata:
-      annotations: {}
+      annotations:
+        app.kubernetes.io/image-tag: main-latest
       labels:
         app: litellm-gateway
         cost-center: research-dev
@@ -41,7 +42,7 @@ spec:
             secretKeyRef:
               key: master-key
               name: litellm-master-key
-        image: ghcr.io/berriai/litellm:main-latest
+        image: ghcr.io/berriai/litellm@sha256:7c311546c25e7bb6e8cafede9fcd3d0d622ac636b5c9418befaa32e85dfb0186
         imagePullPolicy: IfNotPresent
         livenessProbe:
           failureThreshold: 3

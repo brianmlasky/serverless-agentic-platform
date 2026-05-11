@@ -1,1 +1,30 @@
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    cloud.google.com/neg: '{"ingress":true}'
+    kubectl.kubernetes.io/last-applied-configuration: '{"apiVersion":"v1","kind":"Service","metadata":{"annotations":{},"labels":{"app":"litellm","cost-center":"research-dev"},"name":"litellm-gateway","namespace":"litellm"},"spec":{"ports":[{"name":"http","port":80,"protocol":"TCP","targetPort":4000}],"selector":{"app":"litellm"},"type":"ClusterIP"}}
 
+      '
+  labels:
+    app: litellm
+    cost-center: research-dev
+  name: litellm-gateway
+  namespace: litellm
+spec:
+  clusterIP: 10.20.1.85
+  clusterIPs:
+  - 10.20.1.85
+  internalTrafficPolicy: Cluster
+  ipFamilies:
+  - IPv4
+  ipFamilyPolicy: SingleStack
+  ports:
+  - name: http
+    port: 80
+    protocol: TCP
+    targetPort: 4000
+  selector:
+    app: litellm
+  sessionAffinity: None
+  type: ClusterIP
