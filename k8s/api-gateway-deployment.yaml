@@ -8,7 +8,7 @@ metadata:
     environment: dev
     cost-center: agent-logic
 spec:
-  replicas: 0
+  replicas: 1
   selector:
     matchLabels:
       app: api-gateway
@@ -25,7 +25,7 @@ spec:
         runAsUser: 1000
       containers:
         - name: api-gateway
-          image: us-central1-docker.pkg.dev/alert-hall-466720-c0/agentic-platform/api-gateway:0.1.0@sha256:c060d7d5a48a44259162c9208e47fd781dda1a5e8b1b7f0f976553a7076b2abb
+          image: us-central1-docker.pkg.dev/alert-hall-466720-c0/agentic-platform/api-gateway:v2.0.0@sha256:aa83210813115b30b3adfcf72cdb93683a4547f1a4d263cd57da04ebf20e4996
           ports:
             - containerPort: 8080
           env:
