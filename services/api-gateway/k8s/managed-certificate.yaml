@@ -1,0 +1,8 @@
+apiVersion: networking.gke.io/v1
+kind: ManagedCertificate
+metadata:
+  name: api-gateway-cert
+  namespace: agentic
+spec:
+  domains:
+    - api.brian-lasky.com

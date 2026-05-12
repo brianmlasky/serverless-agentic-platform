@@ -1,0 +1,22 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: api-gateway-ingress
+  namespace: agentic
+  annotations:
+    kubernetes.io/ingress.global-static-ip-name: api-gateway-ip
+    networking.gke.io/managed-certificates: api-gateway-cert
+    cloud.google.com/backend-config: '{"default": "api-gateway-backend-config"}'
+spec:
+  ingressClassName: gce
+  rules:
+  - host: api.brian-lasky.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: api-gateway-service
+            port:
+              number: 80
