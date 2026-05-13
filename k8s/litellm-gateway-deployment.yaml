@@ -68,7 +68,7 @@ metadata:
   namespace: agentic
   labels:
     app: litellm-gateway
-    version: v1.83.3-stable.patch.3
+    version: v1.83.3-stable.patch.4
 spec:
   replicas: 1
   selector:
@@ -78,7 +78,7 @@ spec:
     metadata:
       labels:
         app: litellm-gateway
-        version: v1.83.3-stable.patch.3
+        version: v1.83.3-stable.patch.4
     spec:
       serviceAccountName: litellm-sa
       containers:
@@ -118,7 +118,7 @@ spec:
               type: RuntimeDefault
 
         - name: litellm
-          image: us-central1-docker.pkg.dev/alert-hall-466720-c0/dev-repo/litellm:v1.83.3-stable.patch.3
+          image: us-central1-docker.pkg.dev/alert-hall-466720-c0/dev-repo/litellm:v1.83.3-stable.patch.4
           args:
             - "--config"
             - "/app/config.yaml"
