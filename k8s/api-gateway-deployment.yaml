@@ -36,6 +36,10 @@ spec:
                 secretKeyRef:
                   name: litellm-master-key
                   key: master-key
+            - name: AGENT_MODEL
+              value: "claude-sonnet"
+            - name: IAP_AUDIENCE
+              value: "/projects/390958881559/global/backendServices/482921328315087641"
           resources:
             requests:
               cpu: "100m"
