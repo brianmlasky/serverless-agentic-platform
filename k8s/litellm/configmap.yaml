@@ -1,0 +1,42 @@
+apiVersion: v1
+data:
+  config.yaml: |
+    model_list:
+
+      # ── Gemini 2.5 Flash ──────────────────────────────────────────────────────
+      - model_name: gemini-flash
+        litellm_params:
+          model: vertex_ai/gemini-2.5-flash
+          vertex_project: alert-hall-466720-c0
+          vertex_location: us-central1
+
+      - model_name: gemini-flash-eu
+        litellm_params:
+          model: vertex_ai/gemini-2.5-flash
+          vertex_project: alert-hall-466720-c0
+          vertex_location: europe-west1
+
+      # ── Gemini 2.5 Pro — thinking model needs budget headroom ────────────────
+      - model_name: gemini-pro
+        litellm_params:
+          model: vertex_ai/gemini-2.5-pro
+          vertex_project: alert-hall-466720-c0
+          vertex_location: us-central1
+          thinking:
+            type: enabled
+            budget_tokens: 2048   # explicit thinking budget; response tokens on top
+
+    litellm_settings:
+      drop_params: true
+      request_timeout: 120        # pro is slower; was 60
+      num_retries: 3
+
+    general_settings:
+      master_key: os.environ/LITELLM_MASTER_KEY
+kind: ConfigMap
+metadata:
+  annotations:
+    kubectl.kubernetes.io/last-applied-configuration: |
+      {"apiVersion":"v1","data":{"config.yaml":"model_list:\n\n  # ── Gemini 2.5 Flash ──────────────────────────────────────────────────────\n  - model_name: gemini-flash\n    litellm_params:\n      model: vertex_ai/gemini-2.5-flash\n      vertex_project: alert-hall-466720-c0\n      vertex_location: us-central1\n\n  - model_name: gemini-flash-eu\n    litellm_params:\n      model: vertex_ai/gemini-2.5-flash\n      vertex_project: alert-hall-466720-c0\n      vertex_location: europe-west1\n\n  # ── Gemini 2.5 Pro — thinking model needs budget headroom ────────────────\n  - model_name: gemini-pro\n    litellm_params:\n      model: vertex_ai/gemini-2.5-pro\n      vertex_project: alert-hall-466720-c0\n      vertex_location: us-central1\n      thinking:\n        type: enabled\n        budget_tokens: 2048   # explicit thinking budget; response tokens on top\n\nlitellm_settings:\n  drop_params: true\n  request_timeout: 120        # pro is slower; was 60\n  num_retries: 3\n\ngeneral_settings:\n  master_key: os.environ/LITELLM_MASTER_KEY\n"},"kind":"ConfigMap","metadata":{"annotations":{},"name":"litellm-config","namespace":"agentic"}}
+  name: litellm-config
+  namespace: agentic

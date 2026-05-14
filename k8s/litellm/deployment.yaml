@@ -1,0 +1,207 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    autopilot.gke.io/resource-adjustment: '{"input":{"initContainers":[{"limits":{"cpu":"50m","memory":"32Mi"},"requests":{"cpu":"10m","memory":"16Mi"},"name":"wait-for-proxy"}],"containers":[{"limits":{"cpu":"200m","ephemeral-storage":"1Gi","memory":"128Mi"},"requests":{"cpu":"50m","ephemeral-storage":"1Gi","memory":"64Mi"},"name":"cloud-sql-proxy"},{"limits":{"cpu":"2","ephemeral-storage":"1Gi","memory":"2Gi"},"requests":{"cpu":"500m","ephemeral-storage":"1Gi","memory":"1Gi"},"name":"litellm"}]},"output":{"initContainers":[{"limits":{"cpu":"50m","ephemeral-storage":"2Gi","memory":"32Mi"},"requests":{"cpu":"10m","ephemeral-storage":"2Gi","memory":"16Mi"},"name":"wait-for-proxy"}],"containers":[{"limits":{"cpu":"200m","ephemeral-storage":"1Gi","memory":"128Mi"},"requests":{"cpu":"50m","ephemeral-storage":"1Gi","memory":"64Mi"},"name":"cloud-sql-proxy"},{"limits":{"cpu":"2","ephemeral-storage":"1Gi","memory":"2Gi"},"requests":{"cpu":"500m","ephemeral-storage":"1Gi","memory":"1Gi"},"name":"litellm"}]},"computeClassAtAdmission":"Default","modified":true}'
+    autopilot.gke.io/warden-version: 35.26.0-gke.3
+    deployment.kubernetes.io/revision: "41"
+    kubectl.kubernetes.io/last-applied-configuration: |
+      {"apiVersion":"apps/v1","kind":"Deployment","metadata":{"annotations":{},"labels":{"app":"litellm-gateway","version":"v1.83.3-stable.patch.4"},"name":"litellm-gateway","namespace":"agentic"},"spec":{"replicas":1,"selector":{"matchLabels":{"app":"litellm-gateway"}},"template":{"metadata":{"labels":{"app":"litellm-gateway","version":"v1.83.3-stable.patch.4"}},"spec":{"containers":[{"args":["alert-hall-466720-c0:us-central1:litellm-db","--address=127.0.0.1","--port=5432","--private-ip","--health-check","--http-address=0.0.0.0","--http-port=9090"],"image":"gcr.io/cloud-sql-connectors/cloud-sql-proxy:2.11.0","name":"cloud-sql-proxy","readinessProbe":{"failureThreshold":3,"httpGet":{"path":"/readiness","port":9090},"initialDelaySeconds":5,"periodSeconds":10},"resources":{"limits":{"cpu":"200m","ephemeral-storage":"1Gi","memory":"128Mi"},"requests":{"cpu":"50m","ephemeral-storage":"1Gi","memory":"64Mi"}},"securityContext":{"allowPrivilegeEscalation":false,"capabilities":{"drop":["ALL"]},"runAsNonRoot":true,"runAsUser":65532,"seccompProfile":{"type":"RuntimeDefault"}}},{"args":["--config","/app/config.yaml","--port","4000","--detailed_debug"],"env":[{"name":"LITELLM_MASTER_KEY","valueFrom":{"secretKeyRef":{"key":"master-key","name":"litellm-master-key"}}},{"name":"DB_USERNAME","valueFrom":{"secretKeyRef":{"key":"username","name":"db-credentials"}}},{"name":"DB_PASSWORD","valueFrom":{"secretKeyRef":{"key":"password","name":"db-credentials"}}},{"name":"DB_NAME","valueFrom":{"secretKeyRef":{"key":"database","name":"db-credentials"}}},{"name":"DATABASE_URL","value":"postgresql://$(DB_USERNAME):$(DB_PASSWORD)@127.0.0.1:5432/$(DB_NAME)"},{"name":"STORE_MODEL_IN_DB","value":"true"},{"name":"GOOGLE_CLOUD_PROJECT","value":"alert-hall-466720-c0"}],"image":"us-central1-docker.pkg.dev/alert-hall-466720-c0/dev-repo/litellm:v1.83.3-stable.patch.4","lifecycle":{"preStop":{"exec":{"command":["/bin/sh","-c","sleep 15"]}}},"livenessProbe":{"failureThreshold":5,"httpGet":{"path":"/health/readiness","port":4000},"initialDelaySeconds":60,"periodSeconds":30,"timeoutSeconds":10},"name":"litellm","ports":[{"containerPort":4000,"name":"http","protocol":"TCP"}],"readinessProbe":{"failureThreshold":5,"httpGet":{"path":"/health/readiness","port":4000},"initialDelaySeconds":60,"periodSeconds":15,"timeoutSeconds":10},"resources":{"limits":{"cpu":"2","ephemeral-storage":"1Gi","memory":"2Gi"},"requests":{"cpu":"500m","ephemeral-storage":"1Gi","memory":"1Gi"}},"securityContext":{"allowPrivilegeEscalation":false,"capabilities":{"drop":["ALL"]},"runAsNonRoot":true,"seccompProfile":{"type":"RuntimeDefault"}},"startupProbe":{"failureThreshold":30,"httpGet":{"path":"/health/readiness","port":4000},"initialDelaySeconds":30,"periodSeconds":10},"volumeMounts":[{"mountPath":"/app/config.yaml","name":"litellm-config","readOnly":true,"subPath":"config.yaml"}]}],"serviceAccountName":"litellm-sa","volumes":[{"configMap":{"name":"litellm-config"},"name":"litellm-config"}]}}}}
+  labels:
+    app: litellm-gateway
+    version: v1.83.3-stable.patch.4
+  name: litellm-gateway
+  namespace: agentic
+spec:
+  progressDeadlineSeconds: 600
+  replicas: 1
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      app: litellm-gateway
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+    type: RollingUpdate
+  template:
+    metadata:
+      annotations:
+        kubectl.kubernetes.io/restartedAt: "2026-05-14T21:36:35Z"
+      labels:
+        app: litellm-gateway
+        version: v1.83.3-stable.patch.4
+    spec:
+      containers:
+      - args:
+        - alert-hall-466720-c0:us-central1:litellm-db
+        - --address=127.0.0.1
+        - --port=5432
+        - --private-ip
+        - --health-check
+        - --http-address=0.0.0.0
+        - --http-port=9090
+        image: gcr.io/cloud-sql-connectors/cloud-sql-proxy:2.11.0
+        imagePullPolicy: IfNotPresent
+        name: cloud-sql-proxy
+        readinessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /readiness
+            port: 9090
+            scheme: HTTP
+          initialDelaySeconds: 5
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 1
+        resources:
+          limits:
+            cpu: 200m
+            ephemeral-storage: 1Gi
+            memory: 128Mi
+          requests:
+            cpu: 50m
+            ephemeral-storage: 1Gi
+            memory: 64Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          runAsNonRoot: true
+          runAsUser: 65532
+          seccompProfile:
+            type: RuntimeDefault
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+      - args:
+        - --config
+        - /app/config.yaml
+        - --port
+        - "4000"
+        - --detailed_debug
+        env:
+        - name: LITELLM_MASTER_KEY
+          valueFrom:
+            secretKeyRef:
+              key: master-key
+              name: litellm-master-key
+        - name: DB_USERNAME
+          valueFrom:
+            secretKeyRef:
+              key: username
+              name: db-credentials
+        - name: DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: password
+              name: db-credentials
+        - name: DB_NAME
+          valueFrom:
+            secretKeyRef:
+              key: database
+              name: db-credentials
+        - name: DATABASE_URL
+          value: postgresql://$(DB_USERNAME):$(DB_PASSWORD)@127.0.0.1:5432/$(DB_NAME)
+        - name: GOOGLE_CLOUD_PROJECT
+          value: alert-hall-466720-c0
+        image: us-central1-docker.pkg.dev/alert-hall-466720-c0/dev-repo/litellm:v1.83.3-stable.patch.5
+        imagePullPolicy: IfNotPresent
+        lifecycle:
+          preStop:
+            exec:
+              command:
+              - /bin/sh
+              - -c
+              - sleep 15
+        livenessProbe:
+          failureThreshold: 5
+          httpGet:
+            path: /health/readiness
+            port: 4000
+            scheme: HTTP
+          initialDelaySeconds: 60
+          periodSeconds: 30
+          successThreshold: 1
+          timeoutSeconds: 10
+        name: litellm
+        ports:
+        - containerPort: 4000
+          name: http
+          protocol: TCP
+        readinessProbe:
+          failureThreshold: 5
+          httpGet:
+            path: /health/readiness
+            port: 4000
+            scheme: HTTP
+          initialDelaySeconds: 60
+          periodSeconds: 15
+          successThreshold: 1
+          timeoutSeconds: 10
+        resources:
+          limits:
+            cpu: "2"
+            ephemeral-storage: 1Gi
+            memory: 2Gi
+          requests:
+            cpu: 500m
+            ephemeral-storage: 1Gi
+            memory: 1Gi
+        securityContext:
+          capabilities:
+            drop:
+            - NET_RAW
+          seccompProfile:
+            type: RuntimeDefault
+        startupProbe:
+          failureThreshold: 30
+          httpGet:
+            path: /health/readiness
+            port: 4000
+            scheme: HTTP
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 1
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+        volumeMounts:
+        - mountPath: /app/config.yaml
+          name: litellm-config
+          readOnly: true
+          subPath: config.yaml
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext:
+        seccompProfile:
+          type: RuntimeDefault
+      serviceAccount: litellm-wif-sa
+      serviceAccountName: litellm-wif-sa
+      terminationGracePeriodSeconds: 30
+      tolerations:
+      - effect: NoSchedule
+        key: kubernetes.io/arch
+        operator: Equal
+        value: amd64
+      volumes:
+      - configMap:
+          defaultMode: 420
+          name: litellm-config
+        name: litellm-config
+status:
+  - lastTransitionTime: "2026-05-13T19:41:49Z"
+    lastUpdateTime: "2026-05-13T19:41:49Z"
+    message: Deployment has minimum availability.
+    reason: MinimumReplicasAvailable
+    status: "True"
+    type: Available
+  - lastTransitionTime: "2026-05-14T19:13:54Z"
+    lastUpdateTime: "2026-05-14T21:38:06Z"
+    message: ReplicaSet "litellm-gateway-7dfd8dcbd7" has successfully progressed.
+    reason: NewReplicaSetAvailable
+    status: "True"
+    type: Progressing
+  replicas: 1
+  terminatingReplicas: 0
