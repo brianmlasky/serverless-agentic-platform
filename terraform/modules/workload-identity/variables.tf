@@ -32,3 +32,9 @@ variable "aws_role_arn" {
   type        = string
   default     = ""
 }
+
+variable "project_roles" {
+  description = "List of IAM roles to grant to the litellm GSA at project level."
+  type        = list(string)
+  default     = []
+}

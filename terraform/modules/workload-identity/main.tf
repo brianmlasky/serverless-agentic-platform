@@ -24,3 +24,14 @@ resource "google_service_account_iam_binding" "workload_identity_binding" {
   # the IAM binding before the pool exists, causing a 400 badRequest.
   depends_on = [var.gke_cluster_dependency]
 }
+
+# ── PROJECT-LEVEL ROLES ───────────────────────────────────────────────────────
+# Grant each role in var.project_roles to the litellm GSA.
+# Using google_project_iam_member (additive) so other bindings are not clobbered.
+resource "google_project_iam_member" "litellm_project_roles" {
+  for_each = toset(var.project_roles)
+
+  project = var.project_id
+  role    = each.value
+  member  = "serviceAccount:${google_service_account.litellm.email}"
+}

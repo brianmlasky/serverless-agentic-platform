@@ -154,6 +154,7 @@ module "workload_identity" {
   k8s_service_account    = "litellm-wif-sa"
   environment            = var.environment
   gke_cluster_dependency = module.gke_autopilot.cluster_name
+  project_roles          = ["roles/cloudsql.client"]
 
   depends_on = [module.gke_autopilot, module.aws_iam]
 }
