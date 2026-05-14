@@ -60,13 +60,3 @@ resource "google_container_cluster" "main" {
     ]
   }
 }
-
-# ============================================================
-# Workload Identity Binding
-# Allows GKE pods (via K8s SA) to impersonate GCP SA
-# ============================================================
-resource "google_service_account_iam_member" "workload_identity" {
-  service_account_id = "projects/${var.project_id}/serviceAccounts/${var.workload_sa_email}"
-  role               = "roles/iam.workloadIdentityUser"
-  member             = "serviceAccount:${var.project_id}.svc.id.goog[default/litellm-sa]"
-}

@@ -15,11 +15,6 @@ variable "environment" {
   default     = "dev"
 }
 
-variable "gke_workload_sa_email" {
-  description = "GKE Workload Service Account email"
-  type        = string
-}
-
 variable "litellm_sa_email" {
   description = "LiteLLM Service Account email"
   type        = string

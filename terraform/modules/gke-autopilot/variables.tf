@@ -5,7 +5,6 @@ variable "network_name"         { type = string }
 variable "subnetwork_name"      { type = string }
 variable "pods_range_name"      { type = string }
 variable "services_range_name"  { type = string }
-variable "workload_sa_email"    { type = string }
 
 variable "cluster_name" {
   type    = string

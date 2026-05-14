@@ -62,7 +62,6 @@ module "gke_autopilot" {
   subnetwork_name      = module.networking.subnetwork_name
   pods_range_name      = module.networking.pods_range_name
   services_range_name  = module.networking.services_range_name
-  workload_sa_email    = var.gke_workload_sa_email
 
   depends_on = [module.networking]
 }
