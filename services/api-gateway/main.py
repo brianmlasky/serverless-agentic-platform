@@ -11,7 +11,7 @@ from security import verify_iap_jwt
 
 app = FastAPI(title="Agentic Platform API Gateway", version="2.0.5")
 
-LITELLM_BASE_URL = os.getenv("LITELLM_BASE_URL", "http://litellm-gateway.litellm.svc.cluster.local:80")
+LITELLM_BASE_URL = os.getenv("LITELLM_BASE_URL", "http://litellm-gateway.agentic.svc.cluster.local:80")
 LITELLM_MASTER_KEY = os.getenv("LITELLM_MASTER_KEY", "")
 AGENT_MODEL = os.getenv("AGENT_MODEL", "claude-sonnet")
 COST_CENTER = os.getenv("COST_CENTER", "agentic-platform.dev")
