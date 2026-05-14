@@ -36,6 +36,16 @@ provider "aws" {
   region = var.aws_region
 }
 
+# Resolve project number → derive default Compute Engine node SA
+data "google_project" "current" {
+  project_id = var.project_id
+}
+
+locals {
+  gke_node_sa = "${data.google_project.current.number}-compute@developer.gserviceaccount.com"
+}
+
+
 # ── Networking ─────────────────────────────────────────────────────────────
 module "networking" {
   source      = "../../modules/networking"
@@ -50,6 +60,8 @@ module "artifact_registry" {
   project_id  = var.project_id
   region      = var.region
   environment = var.environment
+
+  reader_service_accounts = [local.gke_node_sa]
 }
 
 # ── GKE Autopilot ─────────────────────────────────────────────────────────

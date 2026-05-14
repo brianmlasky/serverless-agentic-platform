@@ -15,3 +15,9 @@ variable "repository_id" {
   type        = string
   default     = "portfolio-images"
 }
+
+variable "reader_service_accounts" {
+  description = "List of service account emails to grant roles/artifactregistry.reader on this repository"
+  type        = list(string)
+  default     = []
+}
