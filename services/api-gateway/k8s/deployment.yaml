@@ -53,8 +53,8 @@ spec:
         - name: AGENT_MODEL
           value: claude-sonnet
         - name: APP_VERSION
-          value: v2.0.7
-        image: us-central1-docker.pkg.dev/alert-hall-466720-c0/platform/api-gateway:v2.0.7
+          value: 2.1.0
+        image: us-central1-docker.pkg.dev/alert-hall-466720-c0/platform/api-gateway:v2.1.0
         imagePullPolicy: Always
         lifecycle:
           preStop:
