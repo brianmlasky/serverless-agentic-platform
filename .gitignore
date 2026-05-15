@@ -38,3 +38,4 @@ node_modules/
 tfplan
 awscliv2.zip
 aws/
+terraform/environments/dev/check_quota_status.sh
