@@ -1,0 +1,188 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: litellm-gateway
+  namespace: agentic
+  labels:
+    app: litellm-gateway
+    version: v1.83.3-stable.patch.5
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: litellm-gateway
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  template:
+    metadata:
+      labels:
+        app: litellm-gateway
+        version: v1.83.3-stable.patch.5
+    spec:
+      serviceAccountName: litellm-wif-sa
+      securityContext:
+        seccompProfile:
+          type: RuntimeDefault
+      terminationGracePeriodSeconds: 30
+      tolerations:
+        - key: kubernetes.io/arch
+          operator: Equal
+          value: amd64
+          effect: NoSchedule
+      volumes:
+        - name: litellm-config
+          configMap:
+            name: litellm-config
+
+      initContainers:
+        - name: wait-for-proxy
+          image: gcr.io/cloud-sql-connectors/cloud-sql-proxy:2.11.0
+          command: ["/bin/sh", "-c", "until curl -sf http://localhost:9090/readiness; do sleep 2; done"]
+          resources:
+            requests:
+              cpu: 10m
+              memory: 16Mi
+            limits:
+              cpu: 50m
+              memory: 32Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            runAsNonRoot: true
+            runAsUser: 65532
+            capabilities:
+              drop: ["ALL"]
+            seccompProfile:
+              type: RuntimeDefault
+
+      containers:
+        # ── Cloud SQL Auth Proxy ──────────────────────────────────────────────
+        - name: cloud-sql-proxy
+          image: gcr.io/cloud-sql-connectors/cloud-sql-proxy:2.11.0
+          args:
+            - alert-hall-466720-c0:us-central1:litellm-db
+            - --address=127.0.0.1
+            - --port=5432
+            - --private-ip
+            - --health-check
+            - --http-address=0.0.0.0
+            - --http-port=9090
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+              ephemeral-storage: 1Gi
+            limits:
+              cpu: 200m
+              memory: 128Mi
+              ephemeral-storage: 1Gi
+          readinessProbe:
+            httpGet:
+              path: /readiness
+              port: 9090
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            failureThreshold: 3
+          securityContext:
+            allowPrivilegeEscalation: false
+            runAsNonRoot: true
+            runAsUser: 65532
+            capabilities:
+              drop: ["ALL"]
+            seccompProfile:
+              type: RuntimeDefault
+
+        # ── LiteLLM Gateway ───────────────────────────────────────────────────
+        - name: litellm
+          image: us-central1-docker.pkg.dev/alert-hall-466720-c0/dev-repo/litellm:v1.83.3-stable.patch.5
+          args:
+            - --config
+            - /app/config.yaml
+            - --port
+            - "4000"
+            - --detailed_debug
+          ports:
+            - name: http
+              containerPort: 4000
+              protocol: TCP
+          env:
+            - name: LITELLM_MASTER_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: litellm-master-key
+                  key: master-key
+            - name: DB_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: db-credentials
+                  key: username
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: db-credentials
+                  key: password
+            - name: DB_NAME
+              valueFrom:
+                secretKeyRef:
+                  name: db-credentials
+                  key: database
+            - name: DATABASE_URL
+              value: postgresql://$(DB_USERNAME):$(DB_PASSWORD)@127.0.0.1:5432/$(DB_NAME)
+            - name: STORE_MODEL_IN_DB
+              value: "true"
+            - name: GOOGLE_CLOUD_PROJECT
+              value: alert-hall-466720-c0
+          volumeMounts:
+            - name: litellm-config
+              mountPath: /app/config.yaml
+              subPath: config.yaml
+              readOnly: true
+          resources:
+            requests:
+              cpu: 500m
+              memory: 1Gi
+              ephemeral-storage: 1Gi
+            limits:
+              cpu: "2"
+              memory: 2Gi
+              ephemeral-storage: 1Gi
+          # Gives the container time to finish in-flight requests on shutdown
+          lifecycle:
+            preStop:
+              exec:
+                command: ["/bin/sh", "-c", "sleep 15"]
+          # Waits up to 5 min for first healthy response (30s delay + 30 attempts × 10s)
+          startupProbe:
+            httpGet:
+              path: /health/readiness
+              port: 4000
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            failureThreshold: 30
+            timeoutSeconds: 10
+          # Removed from rotation if unhealthy; re-added once /health/readiness returns 200
+          readinessProbe:
+            httpGet:
+              path: /health/readiness
+              port: 4000
+            initialDelaySeconds: 60
+            periodSeconds: 15
+            failureThreshold: 5
+            timeoutSeconds: 10
+          # Restarts the container if it becomes permanently unhealthy
+          livenessProbe:
+            httpGet:
+              path: /health/readiness
+              port: 4000
+            initialDelaySeconds: 60
+            periodSeconds: 30
+            failureThreshold: 5
+            timeoutSeconds: 10
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+            seccompProfile:
+              type: RuntimeDefault
