@@ -1,0 +1,13 @@
+apiVersion: networking.gke.io/v1beta1
+kind: FrontendConfig
+metadata:
+  name: api-gateway-frontend
+  namespace: agentic
+  labels:
+    app: api-gateway
+    component: ingress
+    managed-by: gke-ingress
+spec:
+  redirectToHttps:
+    enabled: true
+    responseCodeName: MOVED_PERMANENTLY_DEFAULT

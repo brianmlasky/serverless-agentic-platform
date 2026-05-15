@@ -1,0 +1,31 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: api-gateway-ingress
+  namespace: agentic
+  labels:
+    app: api-gateway
+    component: ingress
+    managed-by: gke-ingress
+  annotations:
+    kubernetes.io/ingress.class: "gce"
+    networking.gke.io/managed-certificates: "api-gateway-cert"
+    networking.gke.io/v1beta1.FrontendConfig: "api-gateway-frontend"
+    kubernetes.io/ingress.global-static-ip-name: "api-gateway-global-ip"
+spec:
+  defaultBackend:
+    service:
+      name: api-gateway-service
+      port:
+        number: 80
+  rules:
+    - host: api.brian-lasky.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: api-gateway-service
+                port:
+                  number: 80

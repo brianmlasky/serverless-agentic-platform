@@ -1,0 +1,22 @@
+apiVersion: cloud.google.com/v1
+kind: BackendConfig
+metadata:
+  name: api-gateway-backend
+  namespace: agentic
+  labels:
+    app: api-gateway
+    component: ingress
+spec:
+  timeoutSec: 300
+  connectionDraining:
+    drainingTimeoutSec: 60
+  sessionAffinity:
+    affinityType: NONE
+  healthCheck:
+    checkIntervalSec: 10
+    timeoutSec: 5
+    healthyThreshold: 2
+    unhealthyThreshold: 3
+    type: HTTP
+    requestPath: /health
+    port: 8080          # ← was 80, container actually listens on 8080

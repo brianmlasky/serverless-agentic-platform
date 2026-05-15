@@ -1,0 +1,12 @@
+apiVersion: networking.gke.io/v1
+kind: ManagedCertificate
+metadata:
+  name: api-gateway-cert
+  namespace: agentic
+  labels:
+    app: api-gateway
+    component: tls
+    managed-by: gke-ingress
+spec:
+  domains:
+    - api.brian-lasky.com
