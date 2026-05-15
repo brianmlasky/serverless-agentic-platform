@@ -2,20 +2,57 @@ import os
 import uuid
 import time
 import json
+import asyncpg
 import httpx
+from contextlib import asynccontextmanager
 from fastapi import FastAPI, HTTPException, Header, Request, Depends
 from fastapi.responses import JSONResponse, StreamingResponse
 from pydantic import BaseModel
 from typing import Optional, List, Any
 from security import verify_iap_jwt
 
-app = FastAPI(title="Agentic Platform API Gateway", version="2.0.8")
+# ---------------------------------------------------------------------------
+# Database
+# ---------------------------------------------------------------------------
+
+DATABASE_URL = (
+    "postgresql://litellm-user:REDACTED"
+    "@127.0.0.1:5432/litellm"
+)
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Create the asyncpg pool on startup; close it on shutdown."""
+    app.state.db_pool = await asyncpg.create_pool(
+        DATABASE_URL,
+        min_size=2,
+        max_size=10,
+        command_timeout=30,
+    )
+    print("DB pool created", flush=True)
+    yield
+    await app.state.db_pool.close()
+    print("DB pool closed", flush=True)
+
+def get_db_pool():
+    """FastAPI dependency: returns the shared asyncpg pool."""
+    return app.state.db_pool
+
+# ---------------------------------------------------------------------------
+# App
+# ---------------------------------------------------------------------------
+
+app = FastAPI(
+    lifespan=lifespan,
+    title="Agentic Platform API Gateway",
+    version="2.1.0",
+)
 
 LITELLM_BASE_URL = os.getenv("LITELLM_BASE_URL", "http://litellm-gateway.agentic.svc.cluster.local:80")
 LITELLM_MASTER_KEY = os.getenv("LITELLM_MASTER_KEY", "")
 AGENT_MODEL = os.getenv("AGENT_MODEL", "gemini-flash")
 COST_CENTER = os.getenv("COST_CENTER", "agentic-platform.dev")
-APP_VERSION = os.getenv("APP_VERSION", "unknown")
+APP_VERSION = os.getenv("APP_VERSION", "2.1.0")
 
 # ---------------------------------------------------------------------------
 # Models
@@ -151,10 +188,10 @@ def run_tool(name: str, tool_input: dict) -> str:
         namespace = tool_input.get("namespace", "default")
         pod_data = {
             "agentic": [
-                {"name": "api-gateway-68c7854d97-25t55", "status": "Running", "ready": "1/1", "restarts": 0},
+                {"name": "api-gateway-544b8ffb99-fpfrt", "status": "Running", "ready": "2/2", "restarts": 0},
             ],
             "litellm": [
-                {"name": "litellm-gateway-7d6f8b9c4d-xk2pq", "status": "Running", "ready": "1/1", "restarts": 0},
+                {"name": "litellm-gateway-7d6f8b9c4d-xk2pq", "status": "Running", "ready": "2/2", "restarts": 0},
             ],
         }
         pods = pod_data.get(namespace, [])
@@ -216,15 +253,26 @@ async def llm_chat(messages: list, tools: list, model: str) -> dict:
     return resp.json()
 
 # ---------------------------------------------------------------------------
-# Health
+# Health — liveness + DB connectivity
 # ---------------------------------------------------------------------------
 
 @app.get("/health")
 async def health():
-    return {"status": "ok", "service": "api-gateway", "version": APP_VERSION}
+    try:
+        async with app.state.db_pool.acquire() as conn:
+            await conn.fetchval("SELECT 1")
+        db_status = "ok"
+    except Exception as exc:
+        db_status = f"error: {exc}"
+    return {
+        "status": "ok" if db_status == "ok" else "degraded",
+        "service": "api-gateway",
+        "version": APP_VERSION,
+        "db": db_status,
+    }
 
 # ---------------------------------------------------------------------------
-# GET /v1/models — OpenAI-compatible discovery, no IAP required
+# GET /v1/models
 # ---------------------------------------------------------------------------
 
 @app.get("/v1/models")
@@ -235,22 +283,17 @@ async def list_models():
     }
     async with httpx.AsyncClient(timeout=30.0) as client:
         try:
-            resp = await client.get(
-                f"{LITELLM_BASE_URL}/v1/models",
-                headers=headers,
-            )
+            resp = await client.get(f"{LITELLM_BASE_URL}/v1/models", headers=headers)
             resp.raise_for_status()
         except httpx.HTTPStatusError as e:
-            raise HTTPException(
-                status_code=e.response.status_code,
-                detail=f"LiteLLM /v1/models error: {e.response.text}",
-            )
+            raise HTTPException(status_code=e.response.status_code,
+                                detail=f"LiteLLM /v1/models error: {e.response.text}")
         except httpx.RequestError as e:
             raise HTTPException(status_code=503, detail=f"LiteLLM unreachable: {str(e)}")
     return JSONResponse(content=resp.json())
 
 # ---------------------------------------------------------------------------
-# POST /v1/chat/completions — OpenAI-compatible, full proxy with streaming
+# POST /v1/chat/completions — full proxy with streaming
 # ---------------------------------------------------------------------------
 
 @app.post("/v1/chat/completions")
@@ -267,7 +310,6 @@ async def chat_completions(
         "Authorization": f"Bearer {LITELLM_MASTER_KEY}",
         "Content-Type": "application/json",
     }
-
     is_streaming = body.get("stream", False)
 
     if is_streaming:
@@ -280,12 +322,10 @@ async def chat_completions(
                     headers=headers,
                 ) as resp:
                     if resp.status_code >= 400:
-                        error_body = await resp.aread()
-                        yield error_body
+                        yield await resp.aread()
                         return
                     async for chunk in resp.aiter_bytes():
                         yield chunk
-
         return StreamingResponse(stream_generator(), media_type="text/event-stream")
 
     async with httpx.AsyncClient(timeout=120.0) as client:
@@ -297,17 +337,14 @@ async def chat_completions(
             )
             resp.raise_for_status()
         except httpx.HTTPStatusError as e:
-            raise HTTPException(
-                status_code=e.response.status_code,
-                detail=f"LiteLLM error: {e.response.text}",
-            )
+            raise HTTPException(status_code=e.response.status_code,
+                                detail=f"LiteLLM error: {e.response.text}")
         except httpx.RequestError as e:
             raise HTTPException(status_code=503, detail=f"LiteLLM unreachable: {str(e)}")
-
     return JSONResponse(content=resp.json())
 
 # ---------------------------------------------------------------------------
-# POST /v1/chat — legacy route, kept for backward compat
+# POST /v1/chat — legacy route
 # ---------------------------------------------------------------------------
 
 @app.post("/v1/chat", response_model=ChatResponse)
@@ -318,12 +355,8 @@ async def chat(
 ):
     if not authorization or not authorization.startswith("Bearer "):
         raise HTTPException(status_code=401, detail="Missing or invalid Authorization header")
-
     token = authorization.removeprefix("Bearer ")
-    headers = {
-        "Authorization": f"Bearer {token}",
-        "Content-Type": "application/json",
-    }
+    headers = {"Authorization": f"Bearer {token}", "Content-Type": "application/json"}
 
     async with httpx.AsyncClient(timeout=60.0) as client:
         try:
@@ -337,7 +370,6 @@ async def chat(
             raise HTTPException(status_code=e.response.status_code, detail=e.response.text)
         except httpx.RequestError as e:
             raise HTTPException(status_code=503, detail=f"LiteLLM unreachable: {str(e)}")
-
     return JSONResponse(content=response.json())
 
 # ---------------------------------------------------------------------------
