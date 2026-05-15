@@ -5,7 +5,7 @@ metadata:
   namespace: agentic
   labels:
     app: api-gateway
-    version: v2.1.0-39c1a09
+    version: v2.1.0-b9647fa
 spec:
   replicas: 1
   selector:
@@ -21,12 +21,12 @@ spec:
     metadata:
       labels:
         app: api-gateway
-        version: v2.1.0-39c1a09
+        version: v2.1.0-b9647fa
     spec:
       terminationGracePeriodSeconds: 90
       containers:
       - name: api-gateway
-        image: us-central1-docker.pkg.dev/alert-hall-466720-c0/agentic-platform/api-gateway:v2.1.0-39c1a09
+        image: us-central1-docker.pkg.dev/alert-hall-466720-c0/agentic-platform/api-gateway:v2.1.0-b9647fa
         ports:
         - containerPort: 8080
         env:
