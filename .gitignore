@@ -39,4 +39,3 @@ tfplan
 awscliv2.zip
 aws/
 terraform/environments/dev/check_quota_status.sh
-api-gateway/
