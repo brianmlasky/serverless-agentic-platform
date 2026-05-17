@@ -1,0 +1,279 @@
+# =============================================================================
+# api-gateway — litellm namespace
+# Migrated from agentic namespace 2026-05-17
+# Apply order: ServiceAccount → BackendConfig → FrontendConfig →
+#              ManagedCertificate → Services → Deployment → Ingress
+# =============================================================================
+
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: api-gateway-sa
+  namespace: litellm
+  labels:
+    app: api-gateway
+    app.kubernetes.io/name: api-gateway
+    app.kubernetes.io/part-of: serverless-agentic-platform
+  annotations:
+    iam.gke.io/gcp-service-account: api-gateway@alert-hall-466720-c0.iam.gserviceaccount.com
+
+---
+apiVersion: cloud.google.com/v1
+kind: BackendConfig
+metadata:
+  name: api-gateway-backend-config
+  namespace: litellm
+  labels:
+    app: api-gateway
+    app.kubernetes.io/name: api-gateway
+    app.kubernetes.io/part-of: serverless-agentic-platform
+spec:
+  connectionDraining:
+    drainingTimeoutSec: 60
+  healthCheck:
+    checkIntervalSec: 10
+    healthyThreshold: 1
+    port: 8080
+    requestPath: /health
+    timeoutSec: 5
+    type: HTTP
+    unhealthyThreshold: 3
+  timeoutSec: 300
+
+---
+apiVersion: networking.gke.io/v1beta1
+kind: FrontendConfig
+metadata:
+  name: api-gateway-frontend
+  namespace: litellm
+  labels:
+    app: api-gateway
+    app.kubernetes.io/component: ingress
+    app.kubernetes.io/part-of: serverless-agentic-platform
+    managed-by: gke-ingress
+spec:
+  redirectToHttps:
+    enabled: true
+    responseCodeName: MOVED_PERMANENTLY_DEFAULT
+
+---
+apiVersion: networking.gke.io/v1
+kind: ManagedCertificate
+metadata:
+  name: api-gateway-cert
+  namespace: litellm
+  labels:
+    app: api-gateway
+    app.kubernetes.io/component: tls
+    app.kubernetes.io/part-of: serverless-agentic-platform
+    managed-by: gke-ingress
+spec:
+  domains:
+  - api.brian-lasky.com
+
+---
+# NodePort service — GKE NEG backend for the Cloud Load Balancer
+apiVersion: v1
+kind: Service
+metadata:
+  name: api-gateway-service
+  namespace: litellm
+  labels:
+    app: api-gateway
+    app.kubernetes.io/name: api-gateway
+    app.kubernetes.io/part-of: serverless-agentic-platform
+  annotations:
+    cloud.google.com/backend-config: '{"default": "api-gateway-backend-config"}'
+    cloud.google.com/neg: '{"ingress": true}'
+spec:
+  type: NodePort
+  selector:
+    app: api-gateway
+  ports:
+  - name: http
+    port: 8080
+    targetPort: 8080
+    protocol: TCP
+
+---
+# ClusterIP service — internal cluster access (e.g. future services calling api-gateway)
+apiVersion: v1
+kind: Service
+metadata:
+  name: api-gateway
+  namespace: litellm
+  labels:
+    app: api-gateway
+    app.kubernetes.io/name: api-gateway
+    app.kubernetes.io/part-of: serverless-agentic-platform
+    cost-center: agent-logic
+    environment: dev
+spec:
+  type: ClusterIP
+  selector:
+    app: api-gateway
+  ports:
+  - port: 80
+    targetPort: 8080
+    protocol: TCP
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api-gateway
+  namespace: litellm
+  labels:
+    app: api-gateway
+    app.kubernetes.io/name: api-gateway
+    app.kubernetes.io/part-of: serverless-agentic-platform
+    version: v2.1.0-6130474
+  annotations:
+    kubernetes.io/change-cause: "migrate api-gateway to litellm namespace 2026-05-17"
+spec:
+  replicas: 1
+  minReadySeconds: 60
+  selector:
+    matchLabels:
+      app: api-gateway
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  template:
+    metadata:
+      labels:
+        app: api-gateway
+        app.kubernetes.io/name: api-gateway
+        app.kubernetes.io/component: api-gateway
+        app.kubernetes.io/part-of: serverless-agentic-platform
+        app.kubernetes.io/version: v2.1.0-6130474
+        version: v2.1.0-6130474
+    spec:
+      serviceAccountName: api-gateway-sa
+      terminationGracePeriodSeconds: 90
+      securityContext:
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+      - name: api-gateway
+        image: us-central1-docker.pkg.dev/alert-hall-466720-c0/agentic-platform/api-gateway:v2.1.0-6130474
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8080
+          protocol: TCP
+        env:
+        - name: PORT
+          value: "8080"
+        - name: APP_VERSION
+          value: v2.1.0
+        - name: AGENT_MODEL
+          value: gemini-flash
+        - name: LITELLM_BASE_URL
+          value: http://litellm-gateway.litellm.svc.cluster.local:80
+        - name: LITELLM_MASTER_KEY
+          valueFrom:
+            secretKeyRef:
+              name: litellm-master-key
+              key: master-key
+        - name: IAP_AUDIENCE
+          value: /projects/390958881559/global/backendServices/482921328315087641
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: api-gateway-db-credentials-v2
+              key: DATABASE_URL
+        resources:
+          requests:
+            cpu: 100m
+            memory: 128Mi
+          limits:
+            cpu: 500m
+            memory: 256Mi
+        securityContext:
+          capabilities:
+            drop:
+            - NET_RAW
+        lifecycle:
+          preStop:
+            exec:
+              command: ["sh", "-c", "sleep 30"]
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+            scheme: HTTP
+          initialDelaySeconds: 5
+          periodSeconds: 10
+          timeoutSeconds: 3
+          successThreshold: 1
+          failureThreshold: 3
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+            scheme: HTTP
+          initialDelaySeconds: 10
+          periodSeconds: 30
+          timeoutSeconds: 1
+          successThreshold: 1
+          failureThreshold: 3
+
+      - name: cloud-sql-proxy
+        image: gcr.io/cloud-sql-connectors/cloud-sql-proxy:2.14.1
+        imagePullPolicy: IfNotPresent
+        args:
+        - alert-hall-466720-c0:us-central1:litellm-db
+        - --address=127.0.0.1
+        - --port=5432
+        - --private-ip
+        resources:
+          requests:
+            cpu: 50m
+            memory: 64Mi
+          limits:
+            cpu: 200m
+            memory: 128Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          runAsNonRoot: true
+          runAsUser: 65532
+          capabilities:
+            drop:
+            - ALL
+          seccompProfile:
+            type: RuntimeDefault
+
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: api-gateway-ingress
+  namespace: litellm
+  labels:
+    app: api-gateway
+    app.kubernetes.io/name: api-gateway
+    app.kubernetes.io/part-of: serverless-agentic-platform
+  annotations:
+    kubernetes.io/ingress.class: gce
+    kubernetes.io/ingress.global-static-ip-name: api-gateway-ip
+    networking.gke.io/managed-certificates: api-gateway-cert
+    networking.gke.io/v1beta1.FrontendConfig: api-gateway-frontend
+spec:
+  defaultBackend:
+    service:
+      name: api-gateway-service
+      port:
+        number: 8080
+  rules:
+  - host: api.brian-lasky.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: api-gateway-service
+            port:
+              number: 8080

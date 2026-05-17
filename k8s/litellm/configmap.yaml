@@ -2,19 +2,19 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: litellm-config
-  namespace: agentic
+  namespace: litellm
 data:
   config.yaml: |
     general_settings:
       master_key: os.environ/LITELLM_MASTER_KEY
+      store_model_in_db: true
+      callbacks:
+        - budget_manager
 
     litellm_settings:
       drop_params: true
       num_retries: 3
       request_timeout: 120
-      fallbacks:
-        - gemini-flash:
-            - gemini-flash-eu
 
     router_settings:
       routing_strategy: simple-shuffle
@@ -48,3 +48,31 @@ data:
           thinking:
             type: enabled
             budget_tokens: 2048
+
+      - model_name: claude-haiku
+        litellm_params:
+          model: vertex_ai/claude-haiku-4-5
+          vertex_project: alert-hall-466720-c0
+          vertex_location: us-central1
+
+      - model_name: claude-sonnet
+        litellm_params:
+          model: vertex_ai/claude-sonnet-4-5
+          vertex_project: alert-hall-466720-c0
+          vertex_location: us-central1
+
+      - model_name: claude-opus
+        litellm_params:
+          model: vertex_ai/claude-opus-4-5
+          vertex_project: alert-hall-466720-c0
+          vertex_location: us-central1
+
+      - model_name: bedrock-claude-sonnet
+        litellm_params:
+          model: bedrock/anthropic.claude-sonnet-4-5-v1:0
+          aws_region_name: us-east-1
+
+      - model_name: bedrock-claude-4
+        litellm_params:
+          model: bedrock/anthropic.claude-4-v1:0
+          aws_region_name: us-east-1
