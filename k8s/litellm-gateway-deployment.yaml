@@ -3,7 +3,7 @@ apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: litellm-sa
-  namespace: agentic
+  namespace: litellm
   annotations:
     iam.gke.io/gcp-service-account: litellm-sa@alert-hall-466720-c0.iam.gserviceaccount.com
 ---
@@ -11,7 +11,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: litellm-config
-  namespace: agentic
+  namespace: litellm
 data:
   config.yaml: |
     model_list:
@@ -48,7 +48,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: litellm-gateway
-  namespace: agentic
+  namespace: litellm
   labels:
     app: litellm-gateway
 spec:
@@ -65,7 +65,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: litellm-gateway
-  namespace: agentic
+  namespace: litellm
   labels:
     app: litellm-gateway
     version: v1.83.3-stable.patch.4
