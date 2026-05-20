@@ -11,14 +11,17 @@ graph TD
         AG[API Gateway]
         TG[Triggered Workload/Pod]
     end
+
     subgraph Governance_Platform
         CM[(Governance ConfigMap)]
         GC[Governance Controller Agent]
     end
+
     subgraph Remediation_and_Observability
         K8S[Kubernetes API]
         Logs[Structured Logs/Stdout]
     end
+
     AG -- "1. Logs Event" --> CM
     GC -- "2. Polls State" --> CM
     GC -- "3. Calculates Spend" --> GC
