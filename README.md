@@ -22,12 +22,12 @@ graph TD
         Logs[Structured Logs/Stdout]
     end
 
-    AG -- 1. Logs Event --> CM
-    GC -- 2. Polls State --> CM
-    GC -- 3. Calculates Spend --> GC
-    GC -- 4. Threshold Breach --> K8S
-    K8S -- 5. Kill/Scale Command --> TG
-    GC -- 6. Emit Telemetry --> Logs
+    AG -- "1. Logs Event" --> CM
+    GC -- "2. Polls State" --> CM
+    GC -- "3. Calculates Spend" --> GC
+    GC -- "4. Threshold Breach" --> K8S
+    K8S -- "5. Kill/Scale Command" --> TG
+    GC -- "6. Emit Telemetry" --> Logs
 
 ## Key Features
 - **Fiscal SecOps:** Real-time token/cost tracking for LLM tool executions.
