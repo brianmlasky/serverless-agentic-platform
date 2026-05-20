@@ -4,6 +4,7 @@
 An autonomous, event-driven SRE platform designed to enforce fiscal guardrails on AI-driven Kubernetes workloads. This project demonstrates real-time observability, automated budget remediation, and policy-as-code enforcement on GKE.
 
 ## Architecture
+
 ```mermaid
 graph TD
     subgraph Infrastructure
