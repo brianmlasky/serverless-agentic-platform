@@ -19,5 +19,5 @@ def validate_config(path):
 
 if __name__ == "__main__":
     import os
-    if not validate_config('base/litellm-config.yaml'):
+    if not validate_config('terraform/k8s/litellm-config.yaml'):
         sys.exit(1)
