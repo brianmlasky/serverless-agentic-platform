@@ -7,17 +7,17 @@ An autonomous, event-driven SRE platform designed to enforce fiscal guardrails o
 
 ```mermaid
 graph TD
-    subgraph "Infrastructure Layer"
+    subgraph Infrastructure_Layer
         AG[API Gateway]
         TG[Triggered Workload/Pod]
     end
 
-    subgraph "Governance Platform"
+    subgraph Governance_Platform
         CM[(Governance ConfigMap)]
         GC[Governance Controller Agent]
     end
 
-    subgraph "Remediation & Observability"
+    subgraph Remediation_and_Observability
         K8S[Kubernetes API]
         Logs[Structured Logs/Stdout]
     end
